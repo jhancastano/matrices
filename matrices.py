@@ -1,4 +1,4 @@
-import threading
+import zmq
 
 
 
@@ -25,15 +25,18 @@ result = [
             [0,0,0,0,0]
          ]
 
-
 def multmatrices(matrizA,matrizB,matrizR):
 # iterate through rows of X
-    for i in range(len(matrizA)):
+    for i in range(int(len(matrizA)/2)+1):
+        print(i)
+        print('-----------')
        # iterate through columns of Y
-       for j in range(len(matrizB[0])):
+        for j in range(len(matrizB[0])):
+            print(matrizB[0])
+            print('----#######------')
            # iterate through rows of Y
-           for k in range(len(matrizB)):
-               matrizR[i][j] += X[i][k] * Y[k][j]
+            for k in range(len(matrizB)):
+                matrizR[i][j] += X[i][k] * Y[k][j]
 
     for r in matrizR:
        print(r)
