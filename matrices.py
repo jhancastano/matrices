@@ -27,7 +27,7 @@ result = [
 
 def multmatrices(matrizA,matrizB,matrizR):
 # iterate through rows of X
-    for i in range(int(len(matrizA)/2)+1):
+    for i in range(int(len(matrizA)/2)):
         print(i)
         print('-----------')
        # iterate through columns of Y
