@@ -20,12 +20,11 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
     filas_extra = len(matrizA)%numeroWorkers5
 
     for x in workersidwwww:
+        socket.send_multipart(x.encode('utf8'),str(nFilas).encode('utf8'),b'matrizA')
+        nFilas = nFilas + nFilas
         print(x)
-    
-    print(workersidwwww)
-    print('------s------s----')
-    print(numeroWorkers5)
-   
+    if filas_extra !=0:
+        socket.send_multipart(workersidwwww[0].encode('utf8'),str(nFilas).encode('utf8'),b'matrizA')
 
 
 
