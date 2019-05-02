@@ -3,29 +3,34 @@ import sys
 import json
 from collections import namedtuple
 
-def numeroworkers(socket,identity):
-    socket.send_multipart([identity,b'numeroWorkers', b'preguntando'])
+def nWorkers(socket,identity):
+    msg = {'operacion':'nWorkers'}
+    msg_json = json.dumps(msg)
+    socket.send_multipart([identity,msg_json.encode('utf8')])
     sender, msg= socket.recv_multipart()
-    return operacion
+    mensaje_json = json.loads(msg)
+    return mensaje_json['nWorkers']
 
-def workersid(socket,identity):
-    socket.send_multipart([identity,b'workersId', b'preguntando'])
-    sender, msg = socket.recv_multipart()
-    return operacion.decode('utf8').split(',')
+def workersID(socket,identity):
+    msg = {'operacion':'workersID'}
+    msg_json = json.dumps(msg)
+    socket.send_multipart([identity,msg_json.encode('utf8')])
+    sender, msg= socket.recv_multipart()
+    mensaje_json = json.loads(msg)
+    return mensaje_json['workersID']
 
 def multiplicacionParalela(socket,identity,matrizA,matrizB):
     print('sera que funcion')
-    workersidwwww = workersid(socket,identity)
-    numeroWorkers5 = int(numeroworkers(socket,identity))
-    nFilas = len(matrizA)/numeroWorkers5
-    filas_extra = len(matrizA)%numeroWorkers5
-
-    for x in workersidwwww:
-        socket.send_multipart(x.encode('utf8'),str(nFilas).encode('utf8'),b'matrizA')
+    listWorkers = workersID(socket,identity)
+    nWorkers = len(listWorkers)
+    nFilas = len(matrizA)/nWorkers
+    filas_extra = len(matrizA)%nWorkers
+    for x in listWorkers:
+        socket.send_multipart()
         nFilas = nFilas + nFilas
         print(x)
     if filas_extra !=0:
-        socket.send_multipart(workersidwwww[0].encode('utf8'),str(nFilas).encode('utf8'),b'matrizA')
+        socket.send_multipart()
 
 
 
@@ -45,7 +50,7 @@ def main():
     rWorker = {'operacion':'registrar'}
     rWorker_json = json.dumps(rWorker)
     socket.send_multipart([identity,rWorker_json.encode('utf8')])
-
+    #--------------------------------
     
     while True:
         socks = dict(poller.poll())
@@ -60,8 +65,9 @@ def main():
             print("?")
             command = input()
             op, msg = command.split(' ', 1)
-            if(op=='multi'):
-                pass
+            if(op=='m'):
+                
+                print(workersID(socket,identity))
             if(op=='multparalela'):
                 pass
             else:

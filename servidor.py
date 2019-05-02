@@ -5,10 +5,11 @@ import json
 
 
 def workers(identidad,lista):
-	if identidad in lista:
+	ident =identidad.decode('utf8')
+	if ident in lista:
 		print('registrado')
 	else:
-		lista.append(identidad)
+		lista.append(ident)
 
 def main():
 	listaworkers = []
@@ -30,11 +31,17 @@ def main():
 		if operacion=='registrar':
 			workers(sender,listaworkers)
 			print(listaworkers)
-		if operacion=='numeroWorkers':
-			numeroWorkers = len(listaworkers)
-			socket.send_multipart([destino, sender, msg])
-		if operacion=='workersId':
-			socket.send_multipart([destino, sender, msg])
+		if operacion=='nWorkers':
+			print('entroaaaaa')
+			nWorkers = len(listaworkers)
+			msg2 = {'nWorkers':nWorkers}
+			msg_json = json.dumps(msg2) 
+			socket.send_multipart([destino, sender, msg_json.encode('utf8')])
+		if operacion=='workersID':
+			msg2 = {'workersID':listaworkers}
+			msg_json = json.dumps(msg2) 
+			socket.send_multipart([destino, sender, msg_json.encode('utf8')])
+
 			print('entroId')
 		else:
 			socket.send_multipart([destino, sender, msg])
