@@ -1,5 +1,6 @@
 import zmq
 import sys
+import json
 
 
 
@@ -23,21 +24,20 @@ def main():
 	print("Started server")
 
 	while True:
-		ident, dest,operacion, msg = socket.recv_multipart()
-		print("Message received from {}".format(operacion))
-		if operacion==b'registrar':
-			workers(ident,listaworkers)
+		sender, destino , msg = socket.recv_multipart()
+		mensaje_json = json.loads(msg)
+		operacion = mensaje_json['operacion']
+		if operacion=='registrar':
+			workers(sender,listaworkers)
 			print(listaworkers)
-		if operacion==b'numeroWorkers':
+		if operacion=='numeroWorkers':
 			numeroWorkers = len(listaworkers)
-			socket.send_multipart([dest, ident, msg, str(numeroWorkers).encode('utf8')])
-		if operacion==b'workersId':
-			lista1 = str(listaworkers).lstrip('[')
-			lista2 = lista1.rstrip(']')
-			socket.send_multipart([dest, ident, msg, lista2.encode('utf8')])
+			socket.send_multipart([destino, sender, msg])
+		if operacion=='workersId':
+			socket.send_multipart([destino, sender, msg])
 			print('entroId')
 		else:
-			socket.send_multipart([dest , ident, operacion, msg])
+			socket.send_multipart([destino, sender, msg])
 
 if __name__ == '__main__':
 	main()

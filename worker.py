@@ -1,15 +1,16 @@
 import zmq
 import sys
+import json
 from collections import namedtuple
 
 def numeroworkers(socket,identity):
     socket.send_multipart([identity,b'numeroWorkers', b'preguntando'])
-    sender, msg , operacion = socket.recv_multipart()
+    sender, msg= socket.recv_multipart()
     return operacion
 
 def workersid(socket,identity):
     socket.send_multipart([identity,b'workersId', b'preguntando'])
-    sender, msg , operacion = socket.recv_multipart()
+    sender, msg = socket.recv_multipart()
     return operacion.decode('utf8').split(',')
 
 def multiplicacionParalela(socket,identity,matrizA,matrizB):
@@ -29,39 +30,40 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
 
 
 def main():
+
     identity = b'a1'
     servidortcp = "tcp://localhost:4444"
-
-
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)
     socket.identity = identity
     socket.connect(servidortcp)
-    
-
     print("Started client with id {}".format(identity))
     poller = zmq.Poller()
     poller.register(sys.stdin, zmq.POLLIN)
     poller.register(socket, zmq.POLLIN)
 
-    socket.send_multipart([identity,b'registrar', b'registradoWorker'])
-    socket.recv_multipart()
+
+    
     while True:
         socks = dict(poller.poll())
+        mensaje = {'operacion':'sin operacion'}
+        mensaje_json = json.dumps(mensaje)
+
         if socket in socks:
-            sender, m , operacion = socket.recv_multipart()
-            print("[{}]: {} ----- {}".format(sender, m, operacion))
+            sender, msg = socket.recv_multipart()
+            print(msg)
 
         elif sys.stdin.fileno() in socks:
             print("?")
             command = input()
-            dest, msg, op = command.split(' ', 2)
-            if(op=='multiplicacion'):
-                multiplicacionParalela(socket,identity,[1,2,3],[2,3,4])
+            op, msg = command.split(' ', 1)
+            if(op=='multi'):
+                pass
             if(op=='multparalela'):
                 pass
             else:
-                socket.send_multipart([bytes(dest, 'ascii'), bytes(msg, 'ascii'), bytes(op, 'ascii')])
+
+                socket.send_multipart([identity,mensaje_json.encode('utf8')])
 
 
 if __name__ == '__main__':
