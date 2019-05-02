@@ -3,6 +3,20 @@ import sys
 import json
 from collections import namedtuple
 
+def multiplicar(socket,identity,matrizA,matrizB,msg):
+    matrizR = []
+    mensaje_json = json.loads(msg)
+    indiceInicial = mensaje_json['indiceInicial']
+    indiceFinal = mensaje_json['indiceFinal']
+    for i in range(indiceInicial,indiceFinal):
+        for j in range(len(matrizB[0])):
+            for k in range(len(matrizB)):
+                matrizR[i][j] += X[i][k] * Y[k][j]
+
+    mensaje = {'matriz':matrizR,'indiceInicial':indiceInicial,'indiceFinal':indiceFinal}
+    mensaje_json = json.loads(mensaje)
+    socket.send_multipart(identity,mensaje_json)
+
 def nWorkers(socket,identity):
     msg = {'operacion':'nWorkers'}
     msg_json = json.dumps(msg)
@@ -20,18 +34,27 @@ def workersID(socket,identity):
     return mensaje_json['workersID']
 
 def multiplicacionParalela(socket,identity,matrizA,matrizB):
-    print('sera que funcion')
     listWorkers = workersID(socket,identity)
     nWorkers = len(listWorkers)
-    nFilas = len(matrizA)/nWorkers
+    nFilas = int(len(matrizA)/nWorkers)
     filas_extra = len(matrizA)%nWorkers
+    indiceInicial = 0
     for x in listWorkers:
-        socket.send_multipart()
+        worker = listWorkers[x].encode('utf8')
+        mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas}
+        mensaje_json = json.dumps(mensaje) 
+        socket.send_multipart([worker,mensaje_json])
         nFilas = nFilas + nFilas
-        print(x)
+        indiceInicial = indiceInicial + nFilas
     if filas_extra !=0:
-        socket.send_multipart()
-
+        mensaje = {'operacion':'multiplicar','indiceInicial':len(matrizA)-filas_extra,'indiceFinal':len(matrizA)}
+        mensaje_json = json.dumps(mensaje)
+        socket.send_multipart(listWorkers[0].encode('utf8'),mensaje_json)
+    sender, msg = socket.recv_multipart()
+    mensaje = json.loads(msg)
+    while mensaje['indiceFinal']<len(matrizA):
+        sender, msg = socket.recv_multipart()
+        mensaje = json.loads(msg)
 
 
 def main():
