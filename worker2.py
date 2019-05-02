@@ -31,7 +31,7 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
 
 def main():
 
-    identity = b'b1'
+    identity = b'ab1'
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)
@@ -41,7 +41,11 @@ def main():
     poller = zmq.Poller()
     poller.register(sys.stdin, zmq.POLLIN)
     poller.register(socket, zmq.POLLIN)
-
+    #registrando worker------------ 
+    rWorker = {'operacion':'registrar'}
+    rWorker_json = json.dumps(rWorker)
+    socket.send_multipart([identity,rWorker_json.encode('utf8')])
+    #--------------------------------
 
     
     while True:
