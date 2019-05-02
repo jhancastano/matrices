@@ -36,7 +36,7 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
 
 def main():
 
-    identity = b'a1'
+    identity = b'b1'
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)
