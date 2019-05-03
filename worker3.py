@@ -153,8 +153,8 @@ def main():
                     print(tiempoInicial)
                     sendMatrizWorkers(socket,identity,a,b)
                 elif(msg=='500x500'):
-                    a = 'matrizA1000X1000.txt'
-                    b = 'matrizB1000X1000.txt'
+                    a = 'matrizA500X500.txt'
+                    b = 'matrizB500X500.txt'
                     tiempoInicial = time.time()
                     print(tiempoInicial)
                     sendMatrizWorkers(socket,identity,a,b)
