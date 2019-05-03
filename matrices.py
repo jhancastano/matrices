@@ -1,4 +1,6 @@
 import zmq
+import random
+import itertools
 
 
 
@@ -24,16 +26,43 @@ result = [
             [0,0,0,0,0],
             [0,0,0,0,0]
          ]
+def crearMatrizNXN(nx,ny):
+    fila = []
+    columna =[]
+    for i in range(nx):
+        for j in range(ny):
+            number  = random.randrange(0,9)
+            columna.append(number)
+        fila.append(columna)
+        columna =[]
+    return fila
+
+def impmatriz(matrizA): 
+    print(matrizA)
+
+
+def setmatrizfile(matrizA):
+    filas = len(matrizA)
+    columnas = len(matrizA[0])
+    with open('matrizB'+str(filas)+'X'+str(columnas)+'.txt', 'w') as file:
+        for x in matrizA:
+            file.write(str(x)+'\n')
+
+def leermatrizcompleta(nombre):
+    with open(nombre,'r') as file:
+        texto = itertools.islice(file, 0, 5)
+        for linea in texto:
+            print(linea)
+    
+
 
 def multmatrices(matrizA,matrizB,matrizR):
 # iterate through rows of X
-    for i in range(int(len(matrizA)/2)):
+    for i in range(len(matrizA)):
         print(i)
         print('-----------')
        # iterate through columns of Y
         for j in range(len(matrizB[0])):
-            print(matrizB[0])
-            print('----#######------')
            # iterate through rows of Y
             for k in range(len(matrizB)):
                 matrizR[i][j] += X[i][k] * Y[k][j]
@@ -41,4 +70,6 @@ def multmatrices(matrizA,matrizB,matrizR):
     for r in matrizR:
        print(r)
 
-multmatrices(X,Y,result)
+#multmatrices(X,Y,result)
+#leermatrizcompleta('matriz5X5.txt')
+#setmatrizfile(crearMatrizNXN(5,5))

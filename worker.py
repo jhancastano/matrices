@@ -33,7 +33,7 @@ def workersID(socket,identity):
     mensaje_json = json.loads(msg)
     return mensaje_json['workersID']
 
-def multiplicacionParalela(socket,identity,matrizA,matrizB):
+def sendMatrizWorkers(socket,identity,matrizA,matrizB):
     listWorkers = workersID(socket,identity)
     nWorkers = len(listWorkers)
     nFilas = int(len(matrizA)/nWorkers)
@@ -41,7 +41,7 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
     indiceInicial = 0
     for x in listWorkers:
         worker = listWorkers[x].encode('utf8')
-        mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas}
+        mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas,'size':len(matrizA)}
         mensaje_json = json.dumps(mensaje) 
         socket.send_multipart([worker,mensaje_json])
         nFilas = nFilas + nFilas
@@ -50,12 +50,14 @@ def multiplicacionParalela(socket,identity,matrizA,matrizB):
         mensaje = {'operacion':'multiplicar','indiceInicial':len(matrizA)-filas_extra,'indiceFinal':len(matrizA)}
         mensaje_json = json.dumps(mensaje)
         socket.send_multipart(listWorkers[0].encode('utf8'),mensaje_json)
-    sender, msg = socket.recv_multipart()
-    mensaje = json.loads(msg)
-    while mensaje['indiceFinal']<len(matrizA):
-        sender, msg = socket.recv_multipart()
-        mensaje = json.loads(msg)
-
+    
+def recvMatrizWorkers(socket,identity,msg):
+    matrizR = []
+    mensaje_json = json.loads(msg)
+    indiceInicial = mensaje_json['indiceInicial']
+    indiceFinal = mensaje_json['indiceFinal']
+    segmento = mensaje_json['matriz']
+    size = mensaje_json['size']
 
 def main():
 
