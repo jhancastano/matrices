@@ -94,7 +94,7 @@ def recvMatrizWorkers(socket,identity,msg):
 def main():
     tiempoInicial = time.time() 
     tiempoFinal = time.time()
-    identity = b'a2'
+    identity = b'a3'
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)

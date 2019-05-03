@@ -3,6 +3,7 @@ import sys
 import json
 import numpy
 import itertools
+import time
 from collections import namedtuple
 
 def leermatrizrangos(nombre,rangoA,rangoB):
@@ -13,6 +14,7 @@ def leermatrizrangos(nombre,rangoA,rangoB):
             a = json.loads(linea)
             matrizR.append(a)
     return matrizR
+
 def leermatrizcompleta(nombre):
     matrizR = []
     with open(nombre,'r') as file:
@@ -27,6 +29,7 @@ def multiplicar(socket,identity,msg):
     Inicial = mensaje_json['indiceInicial']
     Final = mensaje_json['indiceFinal']
     matrices = mensaje_json['matrices']
+    size = mensaje_json['size']
     matrizA = leermatrizrangos(matrices[0],Inicial,Final)
     matrizB = leermatrizcompleta(matrices[1])
     matrizR = numpy.zeros((len(matrizA),len(matrizB[0])))
@@ -35,7 +38,7 @@ def multiplicar(socket,identity,msg):
             for k in range(len(matrizB)):
                 matrizR[i][j] += matrizA[i][k] * matrizB[k][j]
     matriz = matrizR.tolist()
-    mensaje = {'operacion':'complete','matrizR':matriz,'indiceInicial':Inicial,'indiceFinal':Final}
+    mensaje = {'operacion':'complete','matrizR':matriz,'indiceInicial':Inicial,'indiceFinal':Final,'size':size}
     mensaje_json = json.dumps(mensaje)
     socket.send_multipart([identity,mensaje_json.encode('utf8')])
 
@@ -80,11 +83,18 @@ def sendMatrizWorkers(socket,identity,matrizA,matrizB):
 def recvMatrizWorkers(socket,identity,msg):
     mensaje_json = json.loads(msg)
     segmento = mensaje_json['matrizR']
+    indiceFinal = mensaje_json['indiceFinal']
+    size = mensaje_json['size']
     for x in segmento:
         print(x)
+    if(indiceFinal==size):
+        return time.time()
+    else:
+        return -1
 
 def main():
-
+    tiempoInicial = time.time() 
+    tiempoFinal = time.time()
     identity = b'a1'
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
@@ -114,21 +124,42 @@ def main():
                 print('estamos multiplicando')
                 multiplicar(socket,sender,msg)
             elif(operacion=='complete'):
-                recvMatrizWorkers(socket,identity,msg)
+                a = recvMatrizWorkers(socket,identity,msg)
+                if(a!=-1):
+                   tiempoFinal = a
+                   print(a-tiempoInicial) 
             else:
                 pass
         elif sys.stdin.fileno() in socks:
             print("?")
             command = input()
             op, msg = command.split(' ', 1)
-            if(op=='m'):
-                a = 'matrizA5X5.txt'
-                b = 'matrizB5X5.txt'
-                sendMatrizWorkers(socket,identity,a,b)
-            if(op=='multparalela'):
-                pass
+            if(op=='m1'):
+                if (msg=='5x5'):
+                    a = 'matrizA5X5.txt'
+                    b = 'matrizB5X5.txt'
+                    tiempoInicial = time.time()
+                    print(tiempoInicial)
+                    sendMatrizWorkers(socket,identity,a,b)    
+                elif(msg=='10x10'):
+                    a = 'matrizA10X10.txt'
+                    b = 'matrizB10X10.txt'
+                    tiempoInicial = time.time()
+                    print(tiempoInicial)
+                    sendMatrizWorkers(socket,identity,a,b)
+                elif(msg=='100x100'):
+                    a = 'matrizA100X100.txt'
+                    b = 'matrizB100X100.txt'
+                    tiempoInicial = time.time()
+                    print(tiempoInicial)
+                    sendMatrizWorkers(socket,identity,a,b)
+                elif(msg=='500x500'):
+                    a = 'matrizA1000X1000.txt'
+                    b = 'matrizB1000X1000.txt'
+                    tiempoInicial = time.time()
+                    print(tiempoInicial)
+                    sendMatrizWorkers(socket,identity,a,b)
             else:
-
                 socket.send_multipart([identity,mensaje_json.encode('utf8')])
 
 
