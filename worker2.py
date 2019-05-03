@@ -67,29 +67,22 @@ def sendMatrizWorkers(socket,identity,matrizA,matrizB):
     indiceInicial = 0
     for x in listWorkers:
         worker = x.encode('utf8')
-        print(worker)
         mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas,'size':len(a),'matrices':[matrizA,matrizB]}
         mensaje_json = json.dumps(mensaje) 
         socket.send_multipart([worker,mensaje_json.encode('utf8')])
-        nFilas = nFilas + nFilas
         indiceInicial = indiceInicial + nFilas
+        nFilas = nFilas + nFilas
     if filas_extra !=0:
         mensaje = {'operacion':'multiplicar','indiceInicial':len(a)-filas_extra,'indiceFinal':len(a),'size':len(a),'matrices':[matrizA,matrizB]}
         mensaje_json = json.dumps(mensaje)
-        print('hiiiiii')
-        print (listWorkers[0].encode('utf8'))
-        print (listWorkers[0].encode('utf8'))
-        print (listWorkers[0].encode('utf8'))
-        print ('-----')
         socket.send_multipart([listWorkers[0].encode('utf8'),mensaje_json.encode('utf8')])
     
 def recvMatrizWorkers(socket,identity,msg):
-    matrizR = []
     mensaje_json = json.loads(msg)
-    indiceInicial = mensaje_json['indiceInicial']
-    indiceFinal = mensaje_json['indiceFinal']
-    segmento = mensaje_json['matriz']
-    size = mensaje_json['size']
+    segmento = mensaje_json['matrizR']
+    for x in segmento:
+        print(x)
+
 
 def main():
 
@@ -116,12 +109,13 @@ def main():
 
         if socket in socks:
             sender, msg = socket.recv_multipart()
-            print(msg)
             mensaje_json = json.loads(msg)
             operacion = mensaje_json['operacion']
             if(operacion=='multiplicar'):
                 print('estamos multiplicando')
-                multiplicar(socket,identity,msg)
+                multiplicar(socket,sender,msg)
+            elif(operacion=='complete'):
+                recvMatrizWorkers(socket,identity,msg)
             else:
                 pass
         elif sys.stdin.fileno() in socks:
