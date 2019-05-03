@@ -1,21 +1,43 @@
 import zmq
 import sys
 import json
+import numpy
+import itertools
 from collections import namedtuple
 
-def multiplicar(socket,identity,matrizA,matrizB,msg):
+def leermatrizrangos(nombre,rangoA,rangoB):
     matrizR = []
+    with open(nombre,'r') as file:
+        texto = itertools.islice(file, rangoA, rangoB)
+        for linea in texto:
+            a = json.loads(linea)
+            matrizR.append(a)
+    return matrizR
+def leermatrizcompleta(nombre):
+    matrizR = []
+    with open(nombre,'r') as file:
+        for linea in file.readlines():
+            a = json.loads(linea)
+            matrizR.append(a)
+    return matrizR
+
+def multiplicar(socket,identity,msg):
+    
     mensaje_json = json.loads(msg)
-    indiceInicial = mensaje_json['indiceInicial']
-    indiceFinal = mensaje_json['indiceFinal']
-    for i in range(indiceInicial,indiceFinal):
+    Inicial = mensaje_json['indiceInicial']
+    Final = mensaje_json['indiceFinal']
+    matrices = mensaje_json['matrices']
+    matrizA = leermatrizrangos(matrices[0],Inicial,Final)
+    matrizB = leermatrizcompleta(matrices[1])
+    matrizR = numpy.zeros((len(matrizA),len(matrizB[0])))
+    for i in range(len(matrizA)):
         for j in range(len(matrizB[0])):
             for k in range(len(matrizB)):
-                matrizR[i][j] += X[i][k] * Y[k][j]
-
-    mensaje = {'matriz':matrizR,'indiceInicial':indiceInicial,'indiceFinal':indiceFinal}
-    mensaje_json = json.loads(mensaje)
-    socket.send_multipart(identity,mensaje_json)
+                matrizR[i][j] += matrizA[i][k] * matrizB[k][j]
+    matriz = matrizR.tolist()
+    mensaje = {'operacion':'complete','matrizR':matriz,'indiceInicial':Inicial,'indiceFinal':Final}
+    mensaje_json = json.dumps(mensaje)
+    socket.send_multipart([identity,mensaje_json.encode('utf8')])
 
 def nWorkers(socket,identity):
     msg = {'operacion':'nWorkers'}
@@ -33,37 +55,45 @@ def workersID(socket,identity):
     mensaje_json = json.loads(msg)
     return mensaje_json['workersID']
 
-def envio_workers(socket,identity,matrizA,matrizB):
+def sendMatrizWorkers(socket,identity,matrizA,matrizB):
+
+    a = leermatrizcompleta(matrizA)
+    b = leermatrizcompleta(matrizB)
+
     listWorkers = workersID(socket,identity)
     nWorkers = len(listWorkers)
-    nFilas = int(len(matrizA)/nWorkers)
-    filas_extra = len(matrizA)%nWorkers
+    nFilas = int(len(a)/nWorkers)
+    filas_extra = len(a)%nWorkers
     indiceInicial = 0
     for x in listWorkers:
-        worker = listWorkers[x].encode('utf8')
-        mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas,'size':len(matrizA)}
+        worker = x.encode('utf8')
+        print(worker)
+        mensaje = {'operacion':'multiplicar','indiceInicial':indiceInicial,'indiceFinal':nFilas,'size':len(a),'matrices':[matrizA,matrizB]}
         mensaje_json = json.dumps(mensaje) 
-        socket.send_multipart([worker,mensaje_json])
+        socket.send_multipart([worker,mensaje_json.encode('utf8')])
         nFilas = nFilas + nFilas
         indiceInicial = indiceInicial + nFilas
     if filas_extra !=0:
-        mensaje = {'operacion':'multiplicar','indiceInicial':len(matrizA)-filas_extra,'indiceFinal':len(matrizA)}
+        mensaje = {'operacion':'multiplicar','indiceInicial':len(a)-filas_extra,'indiceFinal':len(a),'size':len(a),'matrices':[matrizA,matrizB]}
         mensaje_json = json.dumps(mensaje)
-        socket.send_multipart(listWorkers[0].encode('utf8'),mensaje_json)
+        print('hiiiiii')
+        print (listWorkers[0].encode('utf8'))
+        print (listWorkers[0].encode('utf8'))
+        print (listWorkers[0].encode('utf8'))
+        print ('-----')
+        socket.send_multipart([listWorkers[0].encode('utf8'),mensaje_json.encode('utf8')])
     
-def recepcion_workers(socket,identity,msg):
+def recvMatrizWorkers(socket,identity,msg):
     matrizR = []
     mensaje_json = json.loads(msg)
     indiceInicial = mensaje_json['indiceInicial']
     indiceFinal = mensaje_json['indiceFinal']
     segmento = mensaje_json['matriz']
-    size = mensaje_json['matriz']
-
-
+    size = mensaje_json['size']
 
 def main():
 
-    identity = b'a1'
+    identity = b'b1'
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)
@@ -87,14 +117,21 @@ def main():
         if socket in socks:
             sender, msg = socket.recv_multipart()
             print(msg)
-
+            mensaje_json = json.loads(msg)
+            operacion = mensaje_json['operacion']
+            if(operacion=='multiplicar'):
+                print('estamos multiplicando')
+                multiplicar(socket,identity,msg)
+            else:
+                pass
         elif sys.stdin.fileno() in socks:
             print("?")
             command = input()
             op, msg = command.split(' ', 1)
             if(op=='m'):
-                
-                print(workersID(socket,identity))
+                a = 'matrizA5X5.txt'
+                b = 'matrizB5X5.txt'
+                sendMatrizWorkers(socket,identity,a,b)
             if(op=='multparalela'):
                 pass
             else:
