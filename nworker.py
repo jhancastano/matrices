@@ -4,6 +4,7 @@ import json
 import numpy
 import itertools
 import time
+import random
 from collections import namedtuple
 
 def leermatrizrangos(nombre,rangoA,rangoB):
@@ -14,6 +15,7 @@ def leermatrizrangos(nombre,rangoA,rangoB):
             a = json.loads(linea)
             matrizR.append(a)
     return matrizR
+
 def leermatrizcompleta(nombre):
     matrizR = []
     with open(nombre,'r') as file:
@@ -94,7 +96,9 @@ def recvMatrizWorkers(socket,identity,msg):
 def main():
     tiempoInicial = time.time() 
     tiempoFinal = time.time()
-    identity = b'a4'
+    number  = random.randrange(0,9999)
+    nombrework = 'worker'+ str(number)
+    identity = nombrework.encode('utf8')
     servidortcp = "tcp://localhost:4444"
     context = zmq.Context()
     socket = context.socket(zmq.DEALER)

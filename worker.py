@@ -85,7 +85,7 @@ def recvMatrizWorkers(socket,identity,msg):
     segmento = mensaje_json['matrizR']
     indiceFinal = mensaje_json['indiceFinal']
     size = mensaje_json['size']
-    for x in segmento:
+    for x in range(int(len(segmento))):
         print(x)
     if(indiceFinal==size):
         return time.time()
